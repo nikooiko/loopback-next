@@ -15,6 +15,8 @@ describe('application metadata booter acceptance tests', () => {
     // its relative path to satisfy import statements
     subdir: false,
   });
+  
+  after('delete sandbox', () => sandbox.delete());
 
   beforeEach('reset sandbox', () => sandbox.reset());
   beforeEach(getApp);

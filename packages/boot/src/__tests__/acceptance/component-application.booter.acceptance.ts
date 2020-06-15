@@ -19,6 +19,8 @@ describe('component application booter acceptance tests', () => {
     subdir: false,
   });
 
+  after('delete sandbox', () => sandbox.delete());
+
   beforeEach('reset sandbox', () => sandbox.reset());
   beforeEach(getApp);
 
