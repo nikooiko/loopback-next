@@ -14,8 +14,9 @@ const utils = require('../../lib/utils');
 const appGenerator = path.join(__dirname, '../../generators/app');
 const rootDir = path.join(__dirname, '../../../..');
 const sandboxDir = path.join(rootDir, 'sandbox');
+const {skipIf} = require('@loopback/testlab');
 
-describe('app-generator (SLOW)', function () {
+skipIf(process.env.CI == null, describe, 'app-generator (SLOW)', function () {
   const appProps = {
     name: '@loopback/sandbox-app',
     description: 'My sandbox app for LoopBack 4',
