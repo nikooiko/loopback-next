@@ -9,6 +9,7 @@ import {
   ReferenceObject,
   SchemaObject,
 } from '@loopback/openapi-v3';
+import AjvCtor from 'ajv';
 import debugModule from 'debug';
 import {RestHttpErrors} from '../';
 import {parseJson} from '../parse-json';
@@ -23,9 +24,14 @@ import {
   matchDateFormat,
 } from './utils';
 import {Validator} from './validator';
-const Ajv = require('ajv');
 const isRFC3339 = require('validator/lib/isRFC3339');
 const debug = debugModule('loopback:rest:coercion');
+
+/**
+ * The AJV instance is created for coercing object parameters
+ * with provided schema. Not for validation.
+ */
+const AJV = new AjvCtor({coerceTypes: true});
 
 /**
  * Coerce the http raw data to a JavaScript type data of a parameter
@@ -171,10 +177,12 @@ function coerceObject(input: string | object, spec: ParameterObject) {
 
   const schema = extractSchemaFromSpec(spec);
   if (schema) {
-    // apply coercion based on properties defined by spec.schema
-    const ajv = new Ajv({coerceTypes: true});
-    const validate = ajv.compile(schema);
-    validate(data);
+    // Apply coercion based on properties defined by spec.schema
+    const validate = AJV.compile(schema);
+    // The return type of valid is boolean | PromiseLike<...>,
+    // specify boolean to avoid confusion.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const isValid = validate(data) as boolean;
   }
 
   return data;
