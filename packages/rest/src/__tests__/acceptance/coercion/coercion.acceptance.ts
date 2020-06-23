@@ -27,6 +27,21 @@ describe('Coercion', () => {
     if (spy) spy.restore();
   });
 
+  const filterSchema = {
+    type: 'object',
+    title: 'filter',
+    properties: {
+      where: {
+        type: 'object',
+        properties: {
+          id: {type: 'number'},
+          name: {type: 'string'},
+          active: {type: 'boolean'},
+        },
+      },
+    },
+  };
+
   class MyController {
     @get('/create-number-from-path/{num}')
     createNumberFromPath(@param.path.number('num') num: number) {
@@ -49,7 +64,9 @@ describe('Coercion', () => {
     }
 
     @get('/object-from-query')
-    getObjectFromQuery(@param.query.object('filter') filter: object) {
+    getObjectFromQuery(
+      @param.query.object('filter', filterSchema) filter: object,
+    ) {
       return filter;
     }
   }
@@ -98,9 +115,9 @@ describe('Coercion', () => {
       // This is because all values are encoded as strings on URL queries
       // and we did not specify any schema in @param.query.object() decorator.
       where: {
-        id: '1',
+        id: 1,
         name: 'Pen',
-        active: 'true',
+        active: true,
       },
     });
   });

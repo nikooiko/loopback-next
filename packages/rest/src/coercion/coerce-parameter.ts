@@ -3,7 +3,12 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
-import {isReferenceObject, ParameterObject} from '@loopback/openapi-v3';
+import {
+  isReferenceObject,
+  ParameterObject,
+  ReferenceObject,
+  SchemaObject,
+} from '@loopback/openapi-v3';
 import debugModule from 'debug';
 import {RestHttpErrors} from '../';
 import {parseJson} from '../parse-json';
@@ -18,6 +23,7 @@ import {
   matchDateFormat,
 } from './utils';
 import {Validator} from './validator';
+const Ajv = require('ajv');
 const isRFC3339 = require('validator/lib/isRFC3339');
 const debug = debugModule('loopback:rest:coercion');
 
@@ -32,13 +38,7 @@ export function coerceParameter(
   data: string | undefined | object,
   spec: ParameterObject,
 ) {
-  let schema = spec.schema;
-
-  // If a query parameter is a url encoded Json object, the schema is defined under content['application/json']
-  if (!schema && spec.in === 'query' && spec.content) {
-    const jsonSpec = spec.content['application/json'];
-    schema = jsonSpec.schema;
-  }
+  const schema = extractSchemaFromSpec(spec);
 
   if (!schema || isReferenceObject(schema)) {
     debug(
@@ -169,8 +169,35 @@ function coerceObject(input: string | object, spec: ParameterObject) {
   if (typeof data !== 'object' || Array.isArray(data))
     throw RestHttpErrors.invalidData(input, spec.name);
 
-  // TODO(bajtos) apply coercion based on properties defined by spec.schema
+  const schema = extractSchemaFromSpec(spec);
+  if (schema) {
+    // apply coercion based on properties defined by spec.schema
+    const ajv = new Ajv({coerceTypes: true});
+    const validate = ajv.compile(schema);
+    validate(data);
+  }
+
   return data;
+}
+
+/**
+ * Extract the schema from an OpenAPI parameter specification. If the root level
+ * one not found, search from media type 'application/json'.
+ *
+ * @param spec The parameter specification
+ */
+function extractSchemaFromSpec(
+  spec: ParameterObject,
+): SchemaObject | ReferenceObject | undefined {
+  let schema = spec.schema;
+
+  // If a query parameter is a url encoded Json object,
+  // the schema is defined under content['application/json']
+  if (!schema && spec.in === 'query') {
+    schema = spec.content?.['application/json']?.schema;
+  }
+
+  return schema;
 }
 
 function parseJsonIfNeeded(
