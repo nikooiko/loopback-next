@@ -111,9 +111,6 @@ describe('Coercion', () => {
       })
       .expect(200);
     sinon.assert.calledWithExactly(spy, {
-      // Notice that numeric and boolean values are converted to strings.
-      // This is because all values are encoded as strings on URL queries
-      // and we did not specify any schema in @param.query.object() decorator.
       where: {
         id: 1,
         name: 'Pen',
