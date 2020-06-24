@@ -115,7 +115,7 @@ function getKeyForOptions(options: RequestBodyValidationOptions) {
  * @param globalSchemas - Schema references.
  * @param options - Request body validation options.
  */
-async function validateValueAgainstSchema(
+export async function validateValueAgainstSchema(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   body: any,
   schema: SchemaObject | ReferenceObject,

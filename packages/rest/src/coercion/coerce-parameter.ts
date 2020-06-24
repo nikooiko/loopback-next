@@ -9,9 +9,12 @@ import {
   ReferenceObject,
   SchemaObject,
 } from '@loopback/openapi-v3';
-import AjvCtor from 'ajv';
 import debugModule from 'debug';
-import {RestHttpErrors} from '../';
+import {
+  RequestBodyValidationOptions,
+  RestHttpErrors,
+  validateValueAgainstSchema,
+} from '../';
 import {parseJson} from '../parse-json';
 import {
   DateCoercionOptions,
@@ -28,21 +31,16 @@ const isRFC3339 = require('validator/lib/isRFC3339');
 const debug = debugModule('loopback:rest:coercion');
 
 /**
- * The AJV instance is created for coercing object parameters
- * with provided schema. Not for validation.
- */
-const AJV = new AjvCtor({coerceTypes: true});
-
-/**
  * Coerce the http raw data to a JavaScript type data of a parameter
  * according to its OpenAPI schema specification.
  *
  * @param data - The raw data get from http request
  * @param schema - The parameter's schema defined in OpenAPI specification
  */
-export function coerceParameter(
+export async function coerceParameter(
   data: string | undefined | object,
   spec: ParameterObject,
+  options?: RequestBodyValidationOptions,
 ) {
   const schema = extractSchemaFromSpec(spec);
 
@@ -78,7 +76,7 @@ export function coerceParameter(
     case 'boolean':
       return coerceBoolean(data, spec);
     case 'object':
-      return coerceObject(data, spec);
+      return coerceObject(data, spec, options);
     case 'string':
     case 'password':
       return coerceString(data, spec);
@@ -164,7 +162,11 @@ function coerceBoolean(data: string | object, spec: ParameterObject) {
   throw RestHttpErrors.invalidData(data, spec.name);
 }
 
-function coerceObject(input: string | object, spec: ParameterObject) {
+async function coerceObject(
+  input: string | object,
+  spec: ParameterObject,
+  options?: RequestBodyValidationOptions,
+) {
   const data = parseJsonIfNeeded(input, spec);
 
   if (data === undefined) {
@@ -178,11 +180,17 @@ function coerceObject(input: string | object, spec: ParameterObject) {
   const schema = extractSchemaFromSpec(spec);
   if (schema) {
     // Apply coercion based on properties defined by spec.schema
-    const validate = AJV.compile(schema);
-    // The return type of valid is boolean | PromiseLike<...>,
-    // specify boolean to avoid confusion.
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const isValid = validate(data) as boolean;
+    await validateValueAgainstSchema(
+      data,
+      schema,
+      {},
+      {...options, coerceTypes: true},
+    );
+    // const validate = AJV.compile(schema);
+    // // The return type of valid is boolean | PromiseLike<...>,
+    // // specify boolean to avoid confusion.
+    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // const isValid = validate(data) as boolean;
   }
 
   return data;
