@@ -7,13 +7,13 @@ import {
   isReferenceObject,
   ParameterObject,
   ReferenceObject,
-  SchemaObject
+  SchemaObject,
 } from '@loopback/openapi-v3';
 import debugModule from 'debug';
 import {
   RequestBodyValidationOptions,
   RestHttpErrors,
-  validateValueAgainstSchema
+  validateValueAgainstSchema,
 } from '../';
 import {parseJson} from '../parse-json';
 import {
@@ -24,7 +24,7 @@ import {
   isFalse,
   isTrue,
   isValidDateTime,
-  matchDateFormat
+  matchDateFormat,
 } from './utils';
 import {Validator} from './validator';
 const isRFC3339 = require('validator/lib/isRFC3339');
@@ -47,7 +47,7 @@ export async function coerceParameter(
   if (!schema || isReferenceObject(schema)) {
     debug(
       'The parameter with schema %s is not coerced since schema' +
-      'dereference is not supported yet.',
+        'dereference is not supported yet.',
       schema,
     );
     return data;
