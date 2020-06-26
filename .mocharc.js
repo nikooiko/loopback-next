@@ -8,6 +8,7 @@ const defaultConfig = require('./packages/build/config/.mocharc.json');
 
 const MONOREPO_CONFIG = {
   lang: 'en_US.UTF-8',
+  parallel: true,
 };
 
 module.exports = mergeMochaConfigs(
