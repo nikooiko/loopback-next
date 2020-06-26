@@ -6,8 +6,13 @@
 const {mergeMochaConfigs} = require('./packages/build');
 const defaultConfig = require('./packages/build/config/.mocharc.json');
 
+const MONOREPO_CONFIG = {
+  lang: 'en_US.UTF-8',
+};
+
 module.exports = mergeMochaConfigs(
   defaultConfig,
+  MONOREPO_CONFIG,
   // Apply Mocha config from packages that require custom Mocha setup
   require('./packages/cli/.mocharc.js'),
 );
